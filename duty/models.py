@@ -35,6 +35,7 @@ class Employee:
     name: str
     subteam: Subteam
     vacation: VacationPeriod | None = None
+    priority: bool = False
 
     def is_available_on(self, day: date) -> bool:
         if self.vacation is None:
@@ -44,6 +45,11 @@ class Employee:
     @property
     def has_vacation_in_period(self) -> bool:
         return self.vacation is not None
+
+    @property
+    def subteam_label(self) -> str:
+        """Подкоманда для вывода: Т / Т+ / Д / Д+."""
+        return f"{self.subteam.value}+" if self.priority else self.subteam.value
 
 
 @dataclass(frozen=True)

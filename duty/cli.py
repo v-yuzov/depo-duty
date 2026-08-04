@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 
 from duty.renderer import render_schedule
-from duty.scheduler import DEFAULT_BACKTRACK_LIMIT, build_schedule
+from duty.scheduler import build_schedule
 from duty.team_parser import load_team, parse_date, period_filename
 
 
@@ -52,13 +52,6 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="Путь к файлу результата (по умолчанию duty-<from>-<to>.md)",
     )
-    parser.add_argument(
-        "--backtrack-limit",
-        dest="backtrack_limit",
-        type=int,
-        default=DEFAULT_BACKTRACK_LIMIT,
-        help=f"Лимит попыток подбора пары на слот (по умолчанию {DEFAULT_BACKTRACK_LIMIT})",
-    )
     return parser
 
 
@@ -88,12 +81,11 @@ def main(argv: list[str] | None = None) -> int:
         flush=True,
     )
 
-    status(3, total_steps, "Распределение дежурств (отпускники → остальные)…")
+    status(3, total_steps, "Очереди: отпускники → основные → запасные…")
     result = build_schedule(
         employees=employees,
         period_start=period_start,
         period_end=period_end,
-        backtrack_limit=args.backtrack_limit,
     )
     filled = sum(1 for a in result.assignments if a.is_complete)
     print(

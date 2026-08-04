@@ -41,12 +41,24 @@ def parse_vacation(raw: str) -> VacationPeriod | None:
     return VacationPeriod(start=parse_date(match.group(1)), end=parse_date(match.group(2)))
 
 
-def parse_subteam(raw: str) -> Subteam:
+def parse_subteam(raw: str) -> tuple[Subteam, bool]:
+    """Разбор подкоманды: Т/Д и приоритетные Т+/Д+ (допускается латиница T/D)."""
     value = raw.strip()
-    for item in Subteam:
-        if item.value == value:
-            return item
-    raise ValueError(f"Неизвестная подкоманда: {raw!r}")
+    mapping = {
+        "Т": (Subteam.T, False),
+        "Т+": (Subteam.T, True),
+        "Д": (Subteam.D, False),
+        "Д+": (Subteam.D, True),
+        "T": (Subteam.T, False),
+        "T+": (Subteam.T, True),
+        "D": (Subteam.D, False),
+        "D+": (Subteam.D, True),
+    }
+    if value not in mapping:
+        raise ValueError(
+            f"Неизвестная подкоманда: {raw!r}. Ожидается Т, Т+, Д или Д+"
+        )
+    return mapping[value]
 
 
 def parse_team_markdown(content: str) -> list[Employee]:
@@ -63,11 +75,13 @@ def parse_team_markdown(content: str) -> list[Employee]:
             continue
         if name.startswith("-"):
             continue
+        subteam, priority = parse_subteam(subteam_raw)
         employees.append(
             Employee(
                 name=name,
-                subteam=parse_subteam(subteam_raw),
+                subteam=subteam,
                 vacation=parse_vacation(vacation_raw),
+                priority=priority,
             )
         )
     if not employees:

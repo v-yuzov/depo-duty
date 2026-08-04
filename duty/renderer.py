@@ -21,7 +21,7 @@ MONTHS_RU = {
 
 
 def _employee_label(employee: Employee) -> str:
-    return f"{employee.name} ({employee.subteam.value})"
+    return f"{employee.name} ({employee.subteam_label})"
 
 
 def _status(stats: EmployeeStats) -> str:
@@ -68,13 +68,17 @@ def render_schedule(result: ScheduleResult) -> str:
 
     ordered_stats = sorted(
         result.stats,
-        key=lambda item: (item.employee.subteam.value, item.employee.name),
+        key=lambda item: (
+            item.employee.subteam.value,
+            0 if item.employee.priority else 1,
+            item.employee.name,
+        ),
     )
     for stats in ordered_stats:
         lines.append(
             "| {name} | {team} | {primary} | {backup} | {total} | {target} | {status} |".format(
                 name=stats.employee.name,
-                team=stats.employee.subteam.value,
+                team=stats.employee.subteam_label,
                 primary=stats.primary_count,
                 backup=stats.backup_count,
                 total=stats.total,
